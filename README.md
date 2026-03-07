@@ -52,9 +52,7 @@ TalentRank Studio solves this with a practical workflow:
 
 Replace this placeholder image path with your final screenshot:
 
-```markdown
-![TalentRank Dashboard](docs/media/demo-screenshot.png)
-```
+[TalentRank Dashboard](docs/media/demo-screenshot.png)
 
 ## Architecture
 
