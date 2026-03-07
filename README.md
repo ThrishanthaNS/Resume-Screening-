@@ -1,77 +1,142 @@
-# AI Resume Screening and Analysis System
+<div align="center">
 
-A tech-role focused AI screening system that ranks candidates against job descriptions using explainable scoring.
+# TalentRank Studio
 
-## Why this project stands out
+### AI Resume Screening for Tech Hiring
 
-- Built for real recruiter workflows, not a toy demo.
-- Explainable ranking: each score includes matched skills, missing skills, strengths, and concerns.
-- Tunable scoring for different hiring styles.
-- API-first design, ready to pair with a modern frontend dashboard.
+[![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-Production-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Pytest](https://img.shields.io/badge/Pytest-Tested-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white)](https://docs.pytest.org/)
+[![Status](https://img.shields.io/badge/Status-Active%20Development-2E7D32?style=for-the-badge)](#)
 
-## Current MVP capabilities
+**Explainable candidate ranking with semantic skill matching, drag-drop uploads, and recruiter-ready shortlist workflows.**
 
-- Accepts a job description and multiple candidate resumes.
-- Extracts required technical skills from the job description.
-- Uses role-family weighted scoring for tech roles (`backend`, `frontend`, `data_ai`, `devops`, `fullstack`).
-- Supports `must_have_skills` and `nice_to_have_skills` for stronger shortlist quality.
-- Parses resume files from `PDF`, `DOCX`, and `TXT`.
-- Adds semantic skill adjacency matching so related stack experience gets partial credit.
-- Returns ranked candidates with transparent reasoning and hard-constraint flags.
+[Quick Start](#quick-start) •
+[Features](#features) •
+[Demo](#demo) •
+[API](#api-documentation) •
+[Project Structure](#project-structure)
 
-## Tech stack
+</div>
 
-- Python 3.11+
-- FastAPI
-- Pytest
+## Why This Project
 
-## Project structure
+Manual resume screening is slow, inconsistent, and hard to explain to hiring stakeholders.
 
-```text
-src/app/
-  api/routes.py            # REST endpoints
-  services/scoring.py      # Ranking and scoring logic
-  services/skill_taxonomy.py
-  schemas.py               # Request/response models
-  main.py                  # FastAPI app entry
-tests/
-  test_scoring.py
+TalentRank Studio solves this with a practical workflow:
+
+- Upload a job description and candidate resumes.
+- Extract candidate profile signals automatically.
+- Score with transparent logic (required, must-have, nice-to-have, experience).
+- Recover near-miss talent with semantic matching.
+- Compare candidates side-by-side before final shortlist.
+
+## Features
+
+| Capability | Description |
+|---|---|
+| Explainable Ranking | Returns matched skills, missing skills, strengths, concerns, and semantic evidence. |
+| Role-Aware Scoring | Supports `backend`, `frontend`, `data_ai`, `devops`, and `fullstack` profiles. |
+| Resume Parsing | Ingests `PDF`, `DOCX`, and `TXT` files. |
+| Auto Profile Extraction | Infers candidate name and years of experience from resume text. |
+| Drag-and-Drop Upload | Recruiter dashboard supports direct file drop and parse preview. |
+| Comparison View | Compare two candidates with score components and evidence. |
+
+## Demo
+
+### Demo Video Placeholder
+
+Replace this link with your hosted demo video (YouTube, Loom, Drive, etc.):
+
+`https://your-demo-video-link-here`
+
+Suggested markdown link:
+
+`[Watch TalentRank Demo](https://your-demo-video-link-here)`
+
+### Screenshot Placeholder
+
+Replace this placeholder image path with your final screenshot:
+
+```markdown
+![TalentRank Dashboard](docs/media/demo-screenshot.png)
 ```
 
-## Local setup (Windows PowerShell, using venv)
+Tip: use one screenshot showing upload area, leaderboard, and comparison panel together.
+
+## Architecture
+
+```text
+Client Dashboard (HTML/CSS/JS)
+        |
+        v
+FastAPI Gateway (routes + validation)
+        |
+        +--> Resume Parsing Service (PDF/DOCX/TXT)
+        +--> Candidate Profile Extraction
+        +--> Skill Taxonomy + Semantic Matching
+        +--> Weighted Scoring Engine
+        |
+        v
+Explainable Ranking Response (JSON)
+```
+
+## Quick Start
+
+### Windows (PowerShell)
 
 ```powershell
+Set-Location "c:\Users\pytorch\Desktop\AI Resume Screening & Analysis System"
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 $env:PYTHONPATH = "src"
-uvicorn app.main:app --reload
-```
-
-API docs: `http://127.0.0.1:8000/docs`
-Recruiter dashboard: `http://127.0.0.1:8000/`
-
-If port `8000` is occupied, run on another port:
-
-```powershell
 uvicorn app.main:app --host 127.0.0.1 --port 8001 --reload
 ```
 
-If you open the frontend from a different origin (for example VS Code Live Server), set API base in browser console:
+Open:
 
-```javascript
-localStorage.setItem("talentrank_api_base", "http://127.0.0.1:8001");
+- Dashboard: `http://127.0.0.1:8001/`
+- API Docs: `http://127.0.0.1:8001/docs`
+
+### Linux/macOS
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+PYTHONPATH=src uvicorn app.main:app --host 127.0.0.1 --port 8001 --reload
 ```
 
-## Run tests
+## API Documentation
 
-```powershell
-$env:PYTHONPATH = "src"
-pytest -q
-```
+Base URL:
 
-## Example API payload
+`http://127.0.0.1:8001`
+
+### Health Check
+
+- `GET /v1/health`
+
+### Analyze Text Candidates
+
+- `POST /v1/analyze`
+- Input: JSON payload with job context and candidate resume text blocks.
+
+### Analyze Uploaded Resumes
+
+- `POST /v1/analyze-files`
+- Input: multipart form with `resumes`.
+
+### Preview Uploaded Resume Profiles
+
+- `POST /v1/preview-files`
+- Input: multipart form with `resumes`.
+- Output: per-file parse status, candidate name, years, and detected skills.
+
+## Example Request Payload
 
 ```json
 {
@@ -90,26 +155,70 @@ pytest -q
 }
 ```
 
-## Endpoints
+## Demo Data Included
 
-- `POST /v1/analyze`:
-JSON payload-based analysis using extracted and explicit skills.
-- `POST /v1/analyze-files`:
-Multipart form-based analysis for real resume uploads (`resumes`) with automatic candidate name and experience extraction.
+- Job description: `demo_assets/job_descriptions/backend_python_senior_jd.txt`
+- Realistic varied-size PDF resumes: `demo_assets/resumes_pdf/`
+- Demo guide: `demo_assets/DEMO_RUN_GUIDE.md`
 
-## Dashboard demo flow
+## Project Structure
 
-1. Open `/` and update the role profile and JD.
-2. Choose `Paste Resume Text` or `Upload Resume Files` mode.
-3. In file mode, upload PDF/DOCX/TXT resumes.
-4. Candidate names and years of experience are inferred automatically from resume content (with filename fallback for name).
-5. Run screening to generate leaderboard cards.
-6. Use Candidate Comparison to compare score components and semantic evidence.
+```text
+src/app/
+  api/routes.py                # FastAPI endpoints
+  services/scoring.py          # Ranking and weighted scoring logic
+  services/skill_taxonomy.py   # Skill extraction + semantic adjacency
+  services/resume_parser.py    # Resume parsing + profile extraction
+  web/static/                  # Dashboard frontend
+  schemas.py                   # Request/response models
+  main.py                      # App entrypoint
 
-## Flagship roadmap (next milestones)
+demo_assets/
+  job_descriptions/
+  resumes/
+  resumes_pdf/
 
-1. Embeddings-based semantic matching for skill adjacency.
-2. Frontend recruiter dashboard with candidate comparison UI.
-3. Exportable shortlist reports (PDF/CSV).
-4. Authentication, persistence, and audit trails.
-5. Benchmark dataset and quality metrics for portfolio proof.
+portfolio_assets/              # Upwork case-study/demo/proposal assets
+scripts/                       # Setup and demo utility scripts
+tests/                         # Unit and endpoint tests
+```
+
+## Testing
+
+```powershell
+Set-Location "c:\Users\pytorch\Desktop\AI Resume Screening & Analysis System"
+.\.venv\Scripts\Activate.ps1
+$env:PYTHONPATH = "src"
+pytest -q
+```
+
+## Troubleshooting
+
+### Error: Failed to fetch
+
+- Ensure backend is running.
+- Open dashboard from the same origin (`http://127.0.0.1:8001/`).
+- If using another frontend origin, set API base in browser console:
+
+```javascript
+localStorage.setItem("talentrank_api_base", "http://127.0.0.1:8001");
+```
+
+## Roadmap
+
+- Export shortlist reports (CSV/PDF)
+- Authentication and recruiter workspaces
+- Project-level history and audit trail
+- Configurable scoring templates per company
+- ATS integration hooks
+
+## Contact
+
+For collaboration or freelance implementation:
+
+- LinkedIn: `https://www.linkedin.com/in/prashantsingh-ai/`
+- Email: `prashantsingha96@gmail.com`
+
+---
+
+If this repository helps you, consider starring it.
