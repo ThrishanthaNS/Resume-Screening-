@@ -46,7 +46,7 @@ TalentRank Studio solves this with a practical workflow:
 
 ### Demo Video Placeholder
 
-`[Watch TalentRank Demo](https://github.com/user-attachments/assets/64074d0d-1661-4a3d-850b-2c2e09d17435)`
+[Watch TalentRank Demo](https://github.com/user-attachments/assets/64074d0d-1661-4a3d-850b-2c2e09d17435)`
 
 ### Screenshot Placeholder
 
