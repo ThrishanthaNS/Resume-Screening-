@@ -46,13 +46,7 @@ TalentRank Studio solves this with a practical workflow:
 
 ### Demo Video Placeholder
 
-Replace this link with your hosted demo video (YouTube, Loom, Drive, etc.):
-
-`https://your-demo-video-link-here`
-
-Suggested markdown link:
-
-`[Watch TalentRank Demo](https://your-demo-video-link-here)`
+`[Watch TalentRank Demo](https://github.com/user-attachments/assets/64074d0d-1661-4a3d-850b-2c2e09d17435)`
 
 ### Screenshot Placeholder
 
@@ -61,8 +55,6 @@ Replace this placeholder image path with your final screenshot:
 ```markdown
 ![TalentRank Dashboard](docs/media/demo-screenshot.png)
 ```
-
-Tip: use one screenshot showing upload area, leaderboard, and comparison panel together.
 
 ## Architecture
 
