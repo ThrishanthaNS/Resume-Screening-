@@ -56,20 +56,8 @@ Replace this placeholder image path with your final screenshot:
 
 ## Architecture
 
-```text
-Client Dashboard (HTML/CSS/JS)
-        |
-        v
-FastAPI Gateway (routes + validation)
-        |
-        +--> Resume Parsing Service (PDF/DOCX/TXT)
-        +--> Candidate Profile Extraction
-        +--> Skill Taxonomy + Semantic Matching
-        +--> Weighted Scoring Engine
-        |
-        v
-Explainable Ranking Response (JSON)
-```
+<img width="4190" height="2218" alt="architecture (2)" src="https://github.com/user-attachments/assets/29f8d5de-d5de-4f73-8fd2-61c7bf2f80e7" />
+
 
 ## Quick Start
 
