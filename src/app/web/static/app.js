@@ -39,6 +39,34 @@ function apiUrl(path) {
   return `${getApiBaseUrl()}${normalizedPath}`;
 }
 
+async function parseApiResponse(response) {
+  const rawBody = await response.text();
+  const contentType = (response.headers.get("content-type") || "").toLowerCase();
+
+  if (contentType.includes("application/json")) {
+    if (!rawBody) {
+      return {};
+    }
+
+    try {
+      return JSON.parse(rawBody);
+    } catch {
+      throw new Error("API returned invalid JSON.");
+    }
+  }
+
+  const preview = rawBody.replace(/\s+/g, " ").trim().slice(0, 180);
+  if (!response.ok) {
+    throw new Error(
+      `API returned non-JSON response (${response.status} ${response.statusText}). ${preview || "No response body."}`
+    );
+  }
+
+  throw new Error(
+    `Expected JSON response from API, but got '${contentType || "unknown content type"}'. Check backend URL/origin.`
+  );
+}
+
 function getAnalysisMode() {
   const selected = modeInputs.find((input) => input.checked);
   return selected ? selected.value : "text";
@@ -81,6 +109,27 @@ function setSelectedFiles(files) {
   syncInputWithSelectedFiles();
   updateUploadPreview();
   void fetchUploadPreviews();
+}
+
+function fileFingerprint(file) {
+  return `${file.name}::${file.size}::${file.lastModified}`;
+}
+
+function mergeSelectedFiles(incomingFiles) {
+  if (!incomingFiles.length) {
+    return selectedFiles;
+  }
+
+  const byFingerprint = new Map();
+  selectedFiles.forEach((file) => {
+    byFingerprint.set(fileFingerprint(file), file);
+  });
+
+  incomingFiles.forEach((file) => {
+    byFingerprint.set(fileFingerprint(file), file);
+  });
+
+  return Array.from(byFingerprint.values());
 }
 
 function renderProfilePreviews(previews) {
@@ -134,7 +183,7 @@ async function fetchUploadPreviews() {
       body: formData,
     });
 
-    const data = await response.json();
+    const data = await parseApiResponse(response);
     if (!response.ok) {
       throw new Error(data.detail || "Preview parsing failed");
     }
@@ -377,7 +426,8 @@ modeInputs.forEach((modeInput) => {
   modeInput.addEventListener("change", updateModeVisibility);
 });
 resumeFilesInput.addEventListener("change", () => {
-  setSelectedFiles(Array.from(resumeFilesInput.files || []));
+  const incomingFiles = Array.from(resumeFilesInput.files || []);
+  setSelectedFiles(mergeSelectedFiles(incomingFiles));
 });
 
 dropZone.addEventListener("click", () => {
@@ -403,11 +453,11 @@ dropZone.addEventListener("dragleave", () => {
 dropZone.addEventListener("drop", (event) => {
   event.preventDefault();
   dropZone.classList.remove("active");
-  const files = Array.from(event.dataTransfer?.files || []);
-  if (!files.length) {
+  const incomingFiles = Array.from(event.dataTransfer?.files || []);
+  if (!incomingFiles.length) {
     return;
   }
-  setSelectedFiles(files);
+  setSelectedFiles(mergeSelectedFiles(incomingFiles));
 });
 
 analysisForm.addEventListener("submit", async (event) => {
@@ -422,7 +472,7 @@ analysisForm.addEventListener("submit", async (event) => {
       ? await runFileAnalysis(context)
       : await runTextAnalysis(context);
 
-    const data = await response.json();
+    const data = await parseApiResponse(response);
 
     if (!response.ok) {
       throw new Error(data.detail || "Analysis request failed");
