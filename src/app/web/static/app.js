@@ -19,6 +19,18 @@ const modeInputs = Array.from(document.querySelectorAll('input[name="analysis-mo
 let latestCandidates = [];
 let selectedFiles = [];
 const DEFAULT_API_BASE = "http://127.0.0.1:8001";
+const ALLOWED_EXTENSIONS = [".pdf", ".docx", ".txt"];
+
+function escapeHtml(str) {
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function isAllowedFile(file) {
+  const name = (file.name || "").toLowerCase();
+  return ALLOWED_EXTENSIONS.some((ext) => name.endsWith(ext));
+}
 
 function getApiBaseUrl() {
   const explicitBase = window.localStorage.getItem("talentrank_api_base");
@@ -93,7 +105,7 @@ function updateUploadPreview() {
   uploadPreview.className = "upload-preview";
   uploadPreview.innerHTML = `
     <p><strong>${selectedFiles.length}</strong> file(s) selected</p>
-    <ul>${selectedFiles.map((file) => `<li>${file.name}</li>`).join("")}</ul>
+    <ul>${selectedFiles.map((file) => `<li>${escapeHtml(file.name)}</li>`).join("")}</ul>
   `;
 }
 
@@ -119,12 +131,20 @@ function mergeSelectedFiles(incomingFiles) {
     return selectedFiles;
   }
 
+  const validFiles = incomingFiles.filter((file) => {
+    if (!isAllowedFile(file)) {
+      console.warn(`Skipped unsupported file: ${file.name}`);
+      return false;
+    }
+    return true;
+  });
+
   const byFingerprint = new Map();
   selectedFiles.forEach((file) => {
     byFingerprint.set(fileFingerprint(file), file);
   });
 
-  incomingFiles.forEach((file) => {
+  validFiles.forEach((file) => {
     byFingerprint.set(fileFingerprint(file), file);
   });
 
@@ -144,18 +164,18 @@ function renderProfilePreviews(previews) {
       if (preview.status === "error") {
         return `
           <article class="profile-card error">
-            <h4>${preview.file_name}</h4>
+            <h4>${escapeHtml(preview.file_name)}</h4>
             <p class="profile-meta">Status: parse failed</p>
-            <p>${preview.message || "Could not parse this file."}</p>
+            <p>${escapeHtml(preview.message || "Could not parse this file.")}</p>
           </article>
         `;
       }
 
-      const skills = (preview.detected_skills || []).map((skill) => `<span class="pill">${skill}</span>`).join("");
+      const skills = (preview.detected_skills || []).map((skill) => `<span class="pill">${escapeHtml(skill)}</span>`).join("");
       return `
         <article class="profile-card">
-          <h4>${preview.candidate_name || preview.file_name}</h4>
-          <p class="profile-meta">${preview.file_name} | ${preview.years_experience ?? 0} years detected</p>
+          <h4>${escapeHtml(preview.candidate_name || preview.file_name)}</h4>
+          <p class="profile-meta">${escapeHtml(preview.file_name)} | ${preview.years_experience ?? 0} years detected</p>
           <div class="pill-row">${skills || "<span class='pill'>No skill keywords detected</span>"}</div>
         </article>
       `;
@@ -358,7 +378,7 @@ function renderLeaderboard(candidates) {
       return `
         <article class="candidate-card" style="animation-delay:${index * 80}ms">
           <div class="candidate-top">
-            <h3>${candidate.name}</h3>
+            <h3>${escapeHtml(candidate.name)}</h3>
             <span class="badge ${hardClass}">${hardLabel}</span>
           </div>
           ${scoreBar("Total", candidate.total_score)}
@@ -368,11 +388,11 @@ function renderLeaderboard(candidates) {
           ${scoreBar("Experience", candidate.experience_score)}
           <div>
             <strong>Matched Skills:</strong>
-            <div class="pill-row">${candidate.matched_skills.map((skill) => `<span class="pill">${skill}</span>`).join("") || "<span class='pill'>none</span>"}</div>
+            <div class="pill-row">${candidate.matched_skills.map((skill) => `<span class="pill">${escapeHtml(skill)}</span>`).join("") || "<span class='pill'>none</span>"}</div>
           </div>
           <div>
             <strong>Missing Skills:</strong>
-            <div class="pill-row">${candidate.missing_skills.map((skill) => `<span class="pill miss">${skill}</span>`).join("") || "<span class='pill'>none</span>"}</div>
+            <div class="pill-row">${candidate.missing_skills.map((skill) => `<span class="pill miss">${escapeHtml(skill)}</span>`).join("") || "<span class='pill'>none</span>"}</div>
           </div>
         </article>
       `;
@@ -391,7 +411,7 @@ function fillComparisonSelects(candidates) {
       return `
         <label class="compare-checkbox">
           <input type="checkbox" value="${idx}" ${checked} />
-          <span>${candidate.name}</span>
+          <span>${escapeHtml(candidate.name)}</span>
         </label>
       `;
     })
@@ -406,19 +426,19 @@ function fillComparisonSelects(candidates) {
 
 function compareCard(candidate, index) {
   const semanticRows = Object.entries(candidate.semantic_matches || {})
-    .map(([target, support]) => `<li>${target}: ${support.join(", ")}</li>`)
+    .map(([target, support]) => `<li>${escapeHtml(target)}: ${support.map(escapeHtml).join(", ")}</li>`)
     .join("");
 
   return `
     <article class="compare-card" style="animation-delay:${index * 60}ms">
-      <h4>${candidate.name}</h4>
+      <h4>${escapeHtml(candidate.name)}</h4>
       ${scoreBar("Total", candidate.total_score)}
       ${scoreBar("Skill", candidate.skill_score)}
       ${scoreBar("Must-Have", candidate.must_have_match_rate)}
       ${scoreBar("Nice-To-Have", candidate.nice_to_have_match_rate)}
       ${scoreBar("Experience", candidate.experience_score)}
-      <p><strong>Strengths:</strong> ${(candidate.strengths || []).join(" | ") || "None"}</p>
-      <p><strong>Concerns:</strong> ${(candidate.concerns || []).join(" | ") || "None"}</p>
+      <p><strong>Strengths:</strong> ${(candidate.strengths || []).map(escapeHtml).join(" | ") || "None"}</p>
+      <p><strong>Concerns:</strong> ${(candidate.concerns || []).map(escapeHtml).join(" | ") || "None"}</p>
       <p><strong>Semantic Evidence:</strong></p>
       <ul>${semanticRows || "<li>None</li>"}</ul>
     </article>

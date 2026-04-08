@@ -143,7 +143,7 @@ def infer_role_family(job_title: str, job_description: str) -> RoleFamily:
     scores: dict[str, int] = {role: 0 for role in ROLE_KEYWORDS}
     for role, keywords in ROLE_KEYWORDS.items():
         for keyword in keywords:
-            if keyword in text:
+            if _contains_term(text, keyword):
                 scores[role] += 1
 
     inferred = max(scores, key=lambda role: scores[role])

@@ -2,8 +2,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-
-RoleFamily = Literal["backend", "frontend", "data_ai", "devops", "fullstack"]
+from app.services.skill_taxonomy import RoleFamily
 
 
 class CandidateInput(BaseModel):

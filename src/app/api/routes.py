@@ -19,6 +19,17 @@ from app.services.skill_taxonomy import extract_skills
 
 router = APIRouter(prefix="/v1", tags=["screening"])
 
+MAX_RESUME_BYTES = 10 * 1024 * 1024  # 10 MB per file
+MAX_RESUME_COUNT = 20
+
+
+def _top_candidates_limit() -> int:
+    raw = os.getenv("TOP_CANDIDATES_LIMIT", "10")
+    try:
+        return max(1, int(raw))
+    except (ValueError, TypeError):
+        return 10
+
 
 @router.get("/health")
 def health() -> dict[str, str]:
@@ -42,7 +53,7 @@ def analyze(request: AnalyzeRequest) -> AnalyzeResponse:
         nice_to_have_skills,
     )
 
-    top_limit = int(os.getenv("TOP_CANDIDATES_LIMIT", "10"))
+    top_limit = _top_candidates_limit()
 
     return AnalyzeResponse(
         job_title=request.job_title,
@@ -64,10 +75,25 @@ def _parse_csv_field(raw_value: str) -> list[str]:
 async def preview_files(resumes: list[UploadFile] = File(...)) -> PreviewFilesResponse:
     previews: list[UploadProfilePreview] = []
 
+    if len(resumes) > MAX_RESUME_COUNT:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Too many files. Maximum {MAX_RESUME_COUNT} resumes per request.",
+        )
+
     for idx, resume in enumerate(resumes):
         file_name = resume.filename or f"candidate-{idx + 1}.txt"
         try:
             content = await resume.read()
+            if len(content) > MAX_RESUME_BYTES:
+                previews.append(
+                    UploadProfilePreview(
+                        file_name=file_name,
+                        status="error",
+                        message=f"File exceeds {MAX_RESUME_BYTES // (1024 * 1024)} MB limit.",
+                    )
+                )
+                continue
             resume_text = parse_resume_bytes(file_name, content)
             candidate_name, years = extract_candidate_profile(resume_text, file_name)
             skills = sorted(extract_skills(resume_text))[:8]
@@ -105,9 +131,20 @@ async def analyze_files(
 ) -> AnalyzeResponse:
     candidates: list[CandidateInput] = []
 
+    if len(resumes) > MAX_RESUME_COUNT:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Too many files. Maximum {MAX_RESUME_COUNT} resumes per request.",
+        )
+
     for idx, resume in enumerate(resumes):
         try:
             content = await resume.read()
+            if len(content) > MAX_RESUME_BYTES:
+                raise HTTPException(
+                    status_code=413,
+                    detail=f"File '{resume.filename}' exceeds {MAX_RESUME_BYTES // (1024 * 1024)} MB limit.",
+                )
             resume_text = parse_resume_bytes(resume.filename or "resume.txt", content)
         except ResumeParsingError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -132,7 +169,7 @@ async def analyze_files(
     )
 
     ranked = rank_candidates(candidates, role, required, must_have, nice_to_have)
-    top_limit = int(os.getenv("TOP_CANDIDATES_LIMIT", "10"))
+    top_limit = _top_candidates_limit()
 
     return AnalyzeResponse(
         job_title=job_title,

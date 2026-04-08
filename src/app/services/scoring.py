@@ -64,7 +64,11 @@ def _semantic_weighted_match_rate(
     if not total_skills:
         return empty_default
 
-    weighted_hits = len(exact_matches) + (semantic_weight * len(semantic_matches))
+    # Exclude semantic matches that are already counted as exact matches.
+    exact_set = set(exact_matches)
+    unique_semantic = [s for s in semantic_matches if s not in exact_set]
+
+    weighted_hits = len(exact_matches) + (semantic_weight * len(unique_semantic))
     rate = (weighted_hits / len(total_skills)) * 100
     return round(min(rate, 100.0), 2)
 
