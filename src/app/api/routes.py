@@ -42,7 +42,7 @@ def analyze(request: AnalyzeRequest) -> AnalyzeResponse:
         nice_to_have_skills,
     )
 
-    top_limit = int(os.getenv("TOP_CANDIDATES_LIMIT", "5"))
+    top_limit = int(os.getenv("TOP_CANDIDATES_LIMIT", "10"))
 
     return AnalyzeResponse(
         job_title=request.job_title,
@@ -132,7 +132,7 @@ async def analyze_files(
     )
 
     ranked = rank_candidates(candidates, role, required, must_have, nice_to_have)
-    top_limit = int(os.getenv("TOP_CANDIDATES_LIMIT", "5"))
+    top_limit = int(os.getenv("TOP_CANDIDATES_LIMIT", "10"))
 
     return AnalyzeResponse(
         job_title=job_title,

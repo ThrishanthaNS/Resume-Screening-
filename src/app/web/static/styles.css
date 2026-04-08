@@ -201,6 +201,20 @@ textarea:focus {
   display: none;
 }
 
+.custom-role-input {
+  margin-top: -4px;
+  margin-bottom: 10px;
+  border: 1px solid var(--accent);
+  background: #f7fffe;
+  transition: opacity 180ms ease, max-height 180ms ease;
+  max-height: 60px;
+  opacity: 1;
+}
+
+.custom-role-input.hidden {
+  display: none;
+}
+
 .field-note {
   margin: 4px 0 0;
   color: var(--muted);
@@ -462,10 +476,49 @@ textarea:focus {
   margin-top: 16px;
 }
 
-.comparison-controls {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+.comparison-hint {
+  margin: -8px 0 10px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.comparison-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.compare-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 6px 12px;
+  border: 1px solid #dfd2c1;
+  border-radius: 999px;
+  background: #fff;
+  transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+  user-select: none;
+}
+
+.compare-checkbox:hover {
+  border-color: var(--accent);
+  background: #f2fbfb;
+}
+
+.compare-checkbox:has(input:checked) {
+  border-color: var(--accent);
+  background: #e6f6f6;
+  box-shadow: 0 0 0 2px rgba(14, 138, 140, 0.15);
+}
+
+.compare-checkbox input {
+  width: auto;
+  margin: 0;
+  accent-color: var(--accent);
 }
 
 .comparison-content {
@@ -474,7 +527,7 @@ textarea:focus {
 
 .compare-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 12px;
 }
 
@@ -538,9 +591,12 @@ textarea:focus {
 }
 
 @media (max-width: 700px) {
-  .compare-grid,
-  .comparison-controls {
+  .compare-grid {
     grid-template-columns: 1fr;
+  }
+
+  .comparison-picker {
+    gap: 6px;
   }
 
   .score-row {

@@ -4,8 +4,7 @@ const analysisForm = document.getElementById("analysis-form");
 const leaderboard = document.getElementById("leaderboard");
 const statusBanner = document.getElementById("status-banner");
 const resultSubtitle = document.getElementById("result-subtitle");
-const compareA = document.getElementById("compare-a");
-const compareB = document.getElementById("compare-b");
+const comparisonPicker = document.getElementById("comparison-picker");
 const comparisonContent = document.getElementById("comparison-content");
 const addCandidateButton = document.getElementById("add-candidate");
 const textModeSection = document.getElementById("text-mode-section");
@@ -230,10 +229,26 @@ function collectCandidates() {
   }));
 }
 
+function updateRoleFamilyVisibility() {
+  const roleFamilySelect = document.getElementById("role-family");
+  const customRoleInput = document.getElementById("custom-role-family");
+  const isOther = roleFamilySelect.value === "other";
+  customRoleInput.classList.toggle("hidden", !isOther);
+  if (isOther) {
+    customRoleInput.focus();
+  }
+}
+
 function collectFormContext() {
+  const roleFamilySelect = document.getElementById("role-family");
+  const customRoleInput = document.getElementById("custom-role-family");
+  const roleFamily = roleFamilySelect.value === "other"
+    ? customRoleInput.value.trim()
+    : roleFamilySelect.value;
+
   return {
     jobTitle: document.getElementById("job-title").value.trim(),
-    roleFamily: document.getElementById("role-family").value,
+    roleFamily,
     jobDescription: document.getElementById("job-description").value.trim(),
     mustHaveInput: document.getElementById("must-have").value,
     niceToHaveInput: document.getElementById("nice-to-have").value,
@@ -367,32 +382,41 @@ function renderLeaderboard(candidates) {
 
 function fillComparisonSelects(candidates) {
   latestCandidates = candidates;
-  const options = candidates
-    .map((candidate, idx) => `<option value="${idx}">${candidate.name}</option>`)
+  const maxCompare = 10;
+  const available = candidates.slice(0, maxCompare);
+
+  comparisonPicker.innerHTML = available
+    .map((candidate, idx) => {
+      const checked = idx < Math.min(available.length, maxCompare) ? "checked" : "";
+      return `
+        <label class="compare-checkbox">
+          <input type="checkbox" value="${idx}" ${checked} />
+          <span>${candidate.name}</span>
+        </label>
+      `;
+    })
     .join("");
 
-  compareA.innerHTML = options;
-  compareB.innerHTML = options;
-
-  if (candidates.length > 1) {
-    compareA.value = "0";
-    compareB.value = "1";
-  }
+  comparisonPicker.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {
+    checkbox.addEventListener("change", renderComparison);
+  });
 
   renderComparison();
 }
 
-function compareCard(candidate) {
+function compareCard(candidate, index) {
   const semanticRows = Object.entries(candidate.semantic_matches || {})
     .map(([target, support]) => `<li>${target}: ${support.join(", ")}</li>`)
     .join("");
 
   return `
-    <article class="compare-card">
+    <article class="compare-card" style="animation-delay:${index * 60}ms">
       <h4>${candidate.name}</h4>
       ${scoreBar("Total", candidate.total_score)}
       ${scoreBar("Skill", candidate.skill_score)}
       ${scoreBar("Must-Have", candidate.must_have_match_rate)}
+      ${scoreBar("Nice-To-Have", candidate.nice_to_have_match_rate)}
+      ${scoreBar("Experience", candidate.experience_score)}
       <p><strong>Strengths:</strong> ${(candidate.strengths || []).join(" | ") || "None"}</p>
       <p><strong>Concerns:</strong> ${(candidate.concerns || []).join(" | ") || "None"}</p>
       <p><strong>Semantic Evidence:</strong></p>
@@ -402,26 +426,25 @@ function compareCard(candidate) {
 }
 
 function renderComparison() {
-  if (latestCandidates.length < 2) {
+  const checkedBoxes = Array.from(comparisonPicker.querySelectorAll('input[type="checkbox"]:checked'));
+  const selectedIndices = checkedBoxes.map((cb) => Number(cb.value));
+  const selectedCandidates = selectedIndices
+    .map((idx) => latestCandidates[idx])
+    .filter(Boolean);
+
+  if (!selectedCandidates.length) {
     comparisonContent.className = "comparison-content empty-state";
-    comparisonContent.innerHTML = "<p>Add at least 2 candidates to compare.</p>";
-    return;
-  }
-
-  const a = latestCandidates[Number(compareA.value)];
-  const b = latestCandidates[Number(compareB.value)];
-
-  if (!a || !b) {
+    comparisonContent.innerHTML = "<p>Select at least one candidate to compare.</p>";
     return;
   }
 
   comparisonContent.className = "comparison-content";
-  comparisonContent.innerHTML = `<div class="compare-grid">${compareCard(a)}${compareCard(b)}</div>`;
+  comparisonContent.innerHTML = `<div class="compare-grid">${selectedCandidates.map((c, i) => compareCard(c, i)).join("")}</div>`;
 }
 
 addCandidateButton.addEventListener("click", () => addCandidate());
-compareA.addEventListener("change", renderComparison);
-compareB.addEventListener("change", renderComparison);
+document.getElementById("role-family").addEventListener("change", updateRoleFamilyVisibility);
+
 modeInputs.forEach((modeInput) => {
   modeInput.addEventListener("change", updateModeVisibility);
 });
