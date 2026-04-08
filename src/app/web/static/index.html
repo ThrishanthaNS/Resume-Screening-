@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ARMS - Resume Scanner</title>
+  <title>AI Resume Scanner</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -15,8 +15,8 @@
 
   <main class="page-wrap">
     <section class="hero reveal">
-      <p class="eyebrow">Using AI</p>
-      <h1>Automated Recruitment Management System- Resume Scanner</h1>
+      <p class="eyebrow">Flagship Demo</p>
+      <h1>Resume Scanner</h1>
       <p class="hero-copy">
         Screen tech candidates with explainable AI ranking, semantic skill matching, and shortlist-ready recruiter insights.
       </p>
@@ -50,7 +50,9 @@
             <option value="data_ai">Data/AI</option>
             <option value="devops">DevOps</option>
             <option value="fullstack">Fullstack</option>
+            <option value="other">Other (specify below)</option>
           </select>
+          <input id="custom-role-family" class="custom-role-input hidden" type="text" placeholder="e.g. Security, QA, Mobile, etc." />
 
           <label for="job-description">Job Description</label>
           <textarea id="job-description" name="job-description" rows="6" required>Looking for an engineer experienced in Python, FastAPI, PostgreSQL, Docker, and AWS. Must own API performance, observability, and reliable delivery in production.</textarea>
@@ -120,18 +122,12 @@
 
     <section class="panel comparison-panel reveal">
       <h2>Candidate Comparison</h2>
-      <div class="comparison-controls">
-        <div>
-          <label for="compare-a">Candidate A</label>
-          <select id="compare-a"></select>
-        </div>
-        <div>
-          <label for="compare-b">Candidate B</label>
-          <select id="compare-b"></select>
-        </div>
+      <p class="comparison-hint">Select up to 10 candidates to compare side-by-side.</p>
+      <div id="comparison-picker" class="comparison-picker">
+        <!-- checkboxes will be injected here -->
       </div>
       <div id="comparison-content" class="comparison-content empty-state">
-        <p>Run analysis and select two candidates to compare score components.</p>
+        <p>Run analysis and select candidates to compare score components.</p>
       </div>
     </section>
   </main>
