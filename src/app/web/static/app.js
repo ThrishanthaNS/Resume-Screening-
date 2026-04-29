@@ -386,6 +386,7 @@ function renderLeaderboard(candidates) {
           ${scoreBar("Must-Have", candidate.must_have_match_rate)}
           ${scoreBar("Nice-To-Have", candidate.nice_to_have_match_rate)}
           ${scoreBar("Experience", candidate.experience_score)}
+          ${scoreBar("Role Fit", candidate.role_fit_score)}
           <div>
             <strong>Matched Skills:</strong>
             <div class="pill-row">${candidate.matched_skills.map((skill) => `<span class="pill">${escapeHtml(skill)}</span>`).join("") || "<span class='pill'>none</span>"}</div>
@@ -437,6 +438,7 @@ function compareCard(candidate, index) {
       ${scoreBar("Must-Have", candidate.must_have_match_rate)}
       ${scoreBar("Nice-To-Have", candidate.nice_to_have_match_rate)}
       ${scoreBar("Experience", candidate.experience_score)}
+      ${scoreBar("Role Fit", candidate.role_fit_score)}
       <p><strong>Strengths:</strong> ${(candidate.strengths || []).map(escapeHtml).join(" | ") || "None"}</p>
       <p><strong>Concerns:</strong> ${(candidate.concerns || []).map(escapeHtml).join(" | ") || "None"}</p>
       <p><strong>Semantic Evidence:</strong></p>

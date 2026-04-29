@@ -67,3 +67,37 @@ def test_analyze_files_accepts_multiple_resumes():
     assert len(body["ranked_candidates"]) == 2
     names = {candidate["name"] for candidate in body["ranked_candidates"]}
     assert names == {"Asha Rao", "Karan Mehta"}
+
+
+def test_preview_files_returns_error_for_corrupted_pdf():
+    client = TestClient(app)
+
+    response = client.post(
+        "/v1/preview-files",
+        files={"resumes": ("bad.pdf", BytesIO(b"not a real pdf"), "application/pdf")},
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["previews"][0]["status"] == "error"
+    assert "Could not parse PDF resume" in body["previews"][0]["message"]
+
+
+def test_analyze_files_rejects_corrupted_pdf_with_400():
+    client = TestClient(app)
+
+    response = client.post(
+        "/v1/analyze-files",
+        data={
+            "job_title": "Backend Engineer",
+            "job_description": "Need Python, FastAPI, cloud exposure, databases, and reliable API development ownership.",
+            "role_family": "backend",
+            "must_have_skills": "python,fastapi",
+            "nice_to_have_skills": "aws,postgresql",
+        },
+        files={"resumes": ("bad.pdf", BytesIO(b"not a real pdf"), "application/pdf")},
+    )
+
+    assert response.status_code == 400
+    body = response.json()
+    assert "Could not parse PDF resume" in body["detail"]

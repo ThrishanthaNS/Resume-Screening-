@@ -30,17 +30,25 @@ def parse_resume_bytes(file_name: str, content: bytes) -> str:
 
 
 def _parse_pdf(content: bytes) -> str:
-    reader = PdfReader(BytesIO(content))
-    pages = [page.extract_text() or "" for page in reader.pages]
-    text = _clean_text(" ".join(pages))
+    try:
+        reader = PdfReader(BytesIO(content))
+        pages = [page.extract_text() or "" for page in reader.pages]
+        text = _clean_text(" ".join(pages))
+    except Exception as exc:
+        raise ResumeParsingError("Could not parse PDF resume. The file appears corrupted.") from exc
+
     if not text:
         raise ResumeParsingError("Could not extract text from PDF resume.")
     return text
 
 
 def _parse_docx(content: bytes) -> str:
-    document = Document(BytesIO(content))
-    text = _clean_text(" ".join(paragraph.text for paragraph in document.paragraphs))
+    try:
+        document = Document(BytesIO(content))
+        text = _clean_text(" ".join(paragraph.text for paragraph in document.paragraphs))
+    except Exception as exc:
+        raise ResumeParsingError("Could not parse DOCX resume. The file appears corrupted.") from exc
+
     if not text:
         raise ResumeParsingError("Could not extract text from DOCX resume.")
     return text

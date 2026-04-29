@@ -1,6 +1,5 @@
 <div align="center">
 
-# TalentRank Studio
 
 ### AI Resume Screening for Tech Hiring
 

@@ -98,11 +98,36 @@ ROLE_KEYWORDS = {
 }
 
 ROLE_PROFILE_WEIGHTS = {
-    "backend": {"required": 0.45, "must_have": 0.30, "nice": 0.10, "experience": 0.15},
-    "frontend": {"required": 0.40, "must_have": 0.30, "nice": 0.15, "experience": 0.15},
-    "data_ai": {"required": 0.40, "must_have": 0.35, "nice": 0.10, "experience": 0.15},
-    "devops": {"required": 0.35, "must_have": 0.40, "nice": 0.10, "experience": 0.15},
-    "fullstack": {"required": 0.45, "must_have": 0.25, "nice": 0.15, "experience": 0.15},
+    "backend": {"required": 0.30, "must_have": 0.25, "nice": 0.05, "experience": 0.15, "role_fit": 0.25},
+    "frontend": {"required": 0.30, "must_have": 0.25, "nice": 0.05, "experience": 0.15, "role_fit": 0.25},
+    "data_ai": {"required": 0.25, "must_have": 0.25, "nice": 0.05, "experience": 0.15, "role_fit": 0.30},
+    "devops": {"required": 0.25, "must_have": 0.30, "nice": 0.05, "experience": 0.10, "role_fit": 0.30},
+    "fullstack": {"required": 0.30, "must_have": 0.20, "nice": 0.10, "experience": 0.15, "role_fit": 0.25},
+}
+
+# Core skills expected for each role family.  These are injected into the
+# evaluation regardless of what the job description says, so that changing
+# the role family actually changes which candidates score highest.
+ROLE_BASELINE_SKILLS: dict[str, set[str]] = {
+    "backend": {
+        "python", "java", "go", "sql", "fastapi", "django", "flask",
+        "spring", "node", "dotnet", "postgresql", "docker", "aws",
+    },
+    "frontend": {
+        "javascript", "typescript", "react", "node", "c#", "dotnet",
+    },
+    "data_ai": {
+        "python", "machine learning", "nlp", "llm", "rag", "pytorch",
+        "tensorflow", "pandas", "numpy", "scikit-learn", "sql",
+    },
+    "devops": {
+        "docker", "kubernetes", "terraform", "aws", "azure", "gcp",
+        "ci/cd", "jenkins", "github actions", "python", "go",
+    },
+    "fullstack": {
+        "python", "javascript", "typescript", "react", "node", "sql",
+        "fastapi", "django", "docker", "postgresql", "aws",
+    },
 }
 
 CANONICAL_SKILLS = {skill for group in TECH_SKILLS.values() for skill in group}

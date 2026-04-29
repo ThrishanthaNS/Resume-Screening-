@@ -1,6 +1,7 @@
 from typing import cast
 
 from app.services.skill_taxonomy import (
+    ROLE_BASELINE_SKILLS,
     ROLE_PROFILE_WEIGHTS,
     RoleFamily,
     extract_skills,
@@ -135,6 +136,16 @@ def score_candidate(
     experience_score = _experience_score(candidate.years_experience)
     role_weights = ROLE_PROFILE_WEIGHTS[role_family]
 
+    # --- Role Fit Score ---
+    # Measures how many role-baseline skills the candidate has.
+    # This is what makes different role families produce different rankings.
+    baseline_skills = ROLE_BASELINE_SKILLS.get(role_family, set())
+    if baseline_skills:
+        baseline_matched = resume_skills.intersection(baseline_skills)
+        role_fit_score = round((len(baseline_matched) / len(baseline_skills)) * 100, 2)
+    else:
+        role_fit_score = 0.0
+
     hard_constraint_passed = exact_must_have_match_rate >= 60.0
 
     total_score = (
@@ -142,6 +153,7 @@ def score_candidate(
         + (role_weights["must_have"] * must_have_match_rate)
         + (role_weights["nice"] * nice_to_have_match_rate)
         + (role_weights["experience"] * experience_score)
+        + (role_weights["role_fit"] * role_fit_score)
     )
 
     # Penalize severe must-have misses while still ranking all candidates.
@@ -159,6 +171,8 @@ def score_candidate(
         strengths.append(f"Semantic coverage for {len(semantic_required)} required skills")
     if matched_must:
         strengths.append(f"Covered {len(matched_must)} must-have skills")
+    if role_fit_score >= 50:
+        strengths.append(f"Strong {role_family} role fit ({role_fit_score:.0f}%)")
     if candidate.years_experience >= 3:
         strengths.append("Has practical experience depth")
 
@@ -168,6 +182,8 @@ def score_candidate(
         concerns.append(f"Missing must-have skills: {', '.join(missing_must)}")
     if semantic_must and not hard_constraint_passed:
         concerns.append("Must-have coverage is semantic-only and needs direct evidence")
+    if role_fit_score < 30:
+        concerns.append(f"Weak {role_family} role fit ({role_fit_score:.0f}%)")
     if candidate.years_experience < 1:
         concerns.append("Low proven experience for production delivery")
 
@@ -179,6 +195,7 @@ def score_candidate(
         must_have_match_rate=must_have_match_rate,
         nice_to_have_match_rate=nice_to_have_match_rate,
         experience_score=experience_score,
+        role_fit_score=role_fit_score,
         hard_constraint_passed=hard_constraint_passed,
         matched_skills=matched,
         missing_skills=missing,

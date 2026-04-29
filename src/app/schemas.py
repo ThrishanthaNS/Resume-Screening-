@@ -28,6 +28,7 @@ class CandidateScore(BaseModel):
     must_have_match_rate: float
     nice_to_have_match_rate: float
     experience_score: float
+    role_fit_score: float
     hard_constraint_passed: bool
     matched_skills: list[str]
     missing_skills: list[str]
