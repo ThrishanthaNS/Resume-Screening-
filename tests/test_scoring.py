@@ -1,4 +1,5 @@
 from app.schemas import CandidateInput
+from app.services.skill_taxonomy import extract_skills
 from app.services.scoring import build_skill_context, rank_candidates
 
 
@@ -84,3 +85,33 @@ def test_semantic_matching_adds_partial_credit_and_evidence():
     assert top.skill_score > 0
     assert "machine learning" in top.semantic_matches
     assert "pytorch" in top.semantic_matches["machine learning"]
+
+
+def test_extract_skills_handles_common_resume_formatting_variants():
+    text = "Worked with fast api, machine-learning, node.js, CI CD, and scikit learn"
+
+    skills = extract_skills(text)
+
+    assert "fastapi" in skills
+    assert "machine learning" in skills
+    assert "node" in skills
+    assert "ci/cd" in skills
+    assert "scikit-learn" in skills
+
+
+def test_extract_skills_does_not_invent_symbol_skills_from_plain_text():
+    text = "Aman Sharma was promoted after many project iterations and strong delivery results"
+
+    skills = extract_skills(text)
+
+    assert "c#" not in skills
+    assert "c++" not in skills
+
+
+def test_extract_skills_recognizes_computer_vision():
+    text = "Built CV pipelines and worked on computer vision models with PyTorch"
+
+    skills = extract_skills(text)
+
+    assert "computer vision" in skills
+    assert "pytorch" in skills

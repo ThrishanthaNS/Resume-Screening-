@@ -39,6 +39,7 @@ TECH_SKILLS = {
     ],
     "data_ai": [
         "machine learning",
+        "computer vision",
         "nlp",
         "llm",
         "rag",
@@ -54,15 +55,20 @@ SKILL_ALIASES = {
     "py": "python",
     "nodejs": "node",
     "node.js": "node",
+    "node js": "node",
     ".net": "dotnet",
     "dotnet": "dotnet",
     "postgres": "postgresql",
     "postgresql": "postgresql",
+    "fast api": "fastapi",
+    "machine-learning": "machine learning",
     "k8s": "kubernetes",
     "tf": "terraform",
     "js": "javascript",
     "ts": "typescript",
     "ml": "machine learning",
+    "cv": "computer vision",
+    "ci cd": "ci/cd",
     "genai": "llm",
     "large language model": "llm",
     "large language models": "llm",
@@ -79,6 +85,7 @@ RELATED_SKILL_GRAPH = {
     "sql": {"postgresql", "mongodb"},
     "postgresql": {"sql"},
     "machine learning": {"pytorch", "tensorflow", "scikit-learn", "numpy", "pandas", "llm", "nlp"},
+    "computer vision": {"pytorch", "tensorflow", "numpy", "pandas"},
     "llm": {"nlp", "rag", "machine learning"},
     "nlp": {"llm", "machine learning"},
     "aws": {"docker", "kubernetes", "terraform", "github actions", "jenkins"},
@@ -142,6 +149,20 @@ def _contains_term(text: str, term: str) -> bool:
     return re.search(pattern, text) is not None
 
 
+def _separator_normalize(value: str) -> str:
+    return re.sub(r"[^a-z0-9]+", " ", value.lower()).strip()
+
+
+def _contains_flexible_phrase(text: str, term: str) -> bool:
+    normalized_term = _separator_normalize(term)
+    if not normalized_term or " " not in normalized_term:
+        return False
+
+    normalized_text = _separator_normalize(text)
+    pattern = rf"(?<!\w){re.escape(normalized_term)}(?!\w)"
+    return re.search(pattern, normalized_text) is not None
+
+
 def normalize_skill_name(skill: str) -> str:
     normalized = normalize_text(skill)
     return SKILL_ALIASES.get(normalized, normalized)
@@ -152,11 +173,11 @@ def extract_skills(text: str) -> set[str]:
     found: set[str] = set()
 
     for skill in CANONICAL_SKILLS:
-        if _contains_term(normalized, skill):
+        if _contains_term(normalized, skill) or _contains_flexible_phrase(normalized, skill):
             found.add(skill)
 
     for alias, canonical in SKILL_ALIASES.items():
-        if _contains_term(normalized, alias):
+        if _contains_term(normalized, alias) or _contains_flexible_phrase(normalized, alias):
             found.add(canonical)
 
     return found
