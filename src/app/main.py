@@ -13,16 +13,14 @@ app = FastAPI(
     description="Tech-role focused candidate screening API with explainable ranking.",
 )
 
-# Allow dashboard access from alternate local origins (e.g., VS Code Live Server).
+# Allow dashboard access from any origin.
+# The dashboard is served from the same FastAPI instance, so same-origin
+# requests work by default.  Wildcard is needed for local dev variants
+# (VS Code Live Server, different ports) and the Render deployment URL.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://127.0.0.1:8001",
-        "http://localhost:8001",
-        "http://127.0.0.1:8000",
-        "http://localhost:8000",
-    ],
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
